@@ -14,4 +14,14 @@ class Cour extends Model
         'startDate',
         'endDate',
     ];
+
+    public function teacher()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function students()
+{
+    return $this->belongsToMany(User::class, 'cour_user', 'cour_id', 'user_id')->withTimestamps();
+}
 }
