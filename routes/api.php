@@ -2,6 +2,10 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CourController;
+use App\Http\Controllers\StudentController;
+use App\Http\Controllers\UserController;
+use App\Models\Cour;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -25,10 +29,29 @@ use Illuminate\Support\Facades\Route;
 // });
 
 
-Route::apiResource('cours', CourController::class);
+Route::apiResource('cours', CourController::class)->except('index')->middleware('auth:sanctum');
+
+Route::middleware(['auth:sanctum', 'isAdmin'])->group(function () {
+Route::apiResource('users', UserController::class);
+
+});
+
+Route::post('register', [AuthController::class,'register']);
+Route::post('login', [AuthController::class,'login'])->name('login');
+
+Route::post('logout', [AuthController::class,'logout'])->middleware('auth:sanctum');
+
+Route::get('cours', [CourController::class,'index']);
 
 
-Route::post('/register', [AuthController::class,'register']);
-Route::post('/login', [AuthController::class,'login']);
+Route::get('mycourses', [StudentController::class,'index'])->middleware('auth:sanctum');
+Route::post('/cours/{cour}/enroll', [StudentController::class,'store'])->middleware('auth:sanctum');
 
-Route::post('/logout', [AuthController::class,'logout']);
+Route::get('test-enroll', function () {
+    $user = User::find(2); // Student
+    $cour = Cour::find(1); // Course
+
+    $user->coursesEnrolled()->attach($cour->id);
+
+    return $user->coursesEnrolled;
+});

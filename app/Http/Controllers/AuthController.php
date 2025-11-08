@@ -13,7 +13,8 @@ class AuthController extends Controller
         $infos = $request->validate([
             'name' => 'required|max : 255',
             'email' => 'required|email|unique:users',
-            'password' => 'required|confirmed'
+            'password' => 'required|confirmed',
+            'role' => 'in:student,teacher,admin', 
         ]);
         $user = User::create($infos);
         $token = $user->createToken($request->name);
@@ -25,7 +26,7 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $infos = $request->validate([
+        $request->validate([
             'email' => 'required|email|exists:users',
             'password' => 'required'
         ]);
@@ -35,12 +36,12 @@ class AuthController extends Controller
                 'message' => 'The provided credentials are incorrect.'
             ];
         }
-        $token = $user->createToken($request->name);
+        $token = $user->createToken($user->name);
+
         return [
             'user' => $user,
             'token' => $token->plainTextToken
         ];
-        return 'login';
     }
 
     public function logout(Request $request)

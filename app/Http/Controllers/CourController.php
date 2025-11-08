@@ -3,34 +3,33 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cour;
-use App\Http\Requests\StoreCourRequest;
-use App\Http\Requests\UpdateCourRequest;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware ;
+use Illuminate\Support\Facades\Gate ;
 
-class CourController extends Controller
-{
-    /**
-     * Display a listing of the resource.
-     */
+class CourController extends Controller 
+{  
+  
     public function index()
     {
-        return Cour::all();
-        
+         return Cour::with('teacher')->get();
     }
-  public function store(Request $request)
+    public function store(Request $request)
     {
-       $infos = $request->validate([
+        Gate::authorize('create', Cour::class);
+        $infos = $request->validate([
             'name' => 'required|max:255',
             'description' => 'required|max:255',
             'startDate' => 'nullable|date',
             'endDate' => 'nullable|date',
         ]);
-        $cour = Cour::create($infos);
+        $cour = $request->user()->courses()->create($infos);
 
-        return ['message' => 'cour was added',
-                'cour' =>  $cour
-    ];
-        
+        return [
+            'message' => 'cour was added',
+            'cour' =>  $cour
+        ];
     }
 
     /**
@@ -46,9 +45,10 @@ class CourController extends Controller
      */
     public function update(Request $request, Cour $cour)
     {
-         $infos = $request->validate([
-            'name' => 'required|max:255',
-            'description' => 'required|max:255',
+        Gate::authorize('create', Cour::class);
+        $infos = $request->validate([
+            'name' => 'max:255',
+            'description' => 'max:255',
             'startDate' => 'nullable|date',
             'endDate' => 'nullable|date',
         ]);
@@ -62,7 +62,8 @@ class CourController extends Controller
      */
     public function destroy(Cour $cour)
     {
+       Gate::authorize('create', Cour::class);
         $cour->delete();
         return ['message' => 'cour was deleted'];
-     }
+    }
 }
